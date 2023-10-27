@@ -462,12 +462,12 @@ function withHTMLDualSubtitles(Video) {
     };
   }
 
-  VideoWithHTMLSubtitles.canPlayStream = function (stream) {
+  VideoWithDualHTMLSubtitles.canPlayStream = function (stream) {
     return Video.canPlayStream(stream);
   };
 
-  VideoWithHTMLSubtitles.manifest = {
-    name: Video.manifest.name + "WithHTMLSubtitles",
+  VideoWithDualHTMLSubtitles.manifest = {
+    name: Video.manifest.name + "VideoWithDualHTMLSubtitles",
     external: Video.manifest.external,
     props: Video.manifest.props
       .concat([
