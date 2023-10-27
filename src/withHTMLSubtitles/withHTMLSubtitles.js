@@ -29,27 +29,33 @@ function withHTMLSubtitles(Video) {
         "Container element required to be instance of HTMLElement"
       );
     }
+    console.log(containerElement.getElementsByTagName("video")[0].height);
 
     var subtitlesElement = document.createElement("div");
     subtitlesElement.style.position = "absolute";
     subtitlesElement.style.right = "0";
     subtitlesElement.style.bottom = "0";
+    // subtitlesElement.style.top = "0";
     subtitlesElement.style.left = "0";
     subtitlesElement.style.zIndex = "1";
     subtitlesElement.style.textAlign = "center";
     containerElement.style.position = "relative";
     containerElement.style.zIndex = "0";
+    // subtitlesElement.style.height = "100%";
     containerElement.appendChild(subtitlesElement);
 
     var videoState = {
       time: null,
     };
     var cuesByTime = null;
+    var cuesByTime2 = null;
     var events = new EventEmitter();
     var destroyed = false;
     var tracks = [];
     var selectedTrackId = null;
+    var selectedSub2TrackId = null;
     var delay = null;
+    var delay2 = 0;
     var size = 100;
     var offset = 0;
     var textColor = "rgb(255, 255, 255)";
@@ -58,8 +64,11 @@ function withHTMLSubtitles(Video) {
     var observedProps = {
       extraSubtitlesTracks: false,
       selectedExtraSubtitlesTrackId: false,
+      selectedExtraSubtitles2TrackId: false,
       extraSubtitlesDelay: false,
+      extraSubtitles2Delay: false,
       extraSubtitlesSize: false,
+      extraSubtitles2Size: false,
       extraSubtitlesOffset: false,
       extraSubtitlesTextColor: false,
       extraSubtitlesBackgroundColor: false,
@@ -71,27 +80,63 @@ function withHTMLSubtitles(Video) {
         subtitlesElement.removeChild(subtitlesElement.lastChild);
       }
 
-      if (
-        cuesByTime === null ||
-        videoState.time === null ||
-        !isFinite(videoState.time)
-      ) {
-        return;
+      subtitlesElement.style.bottom = -16 + offset + "%";
+      function renderSub1() {
+        const node = [];
+        if (
+          cuesByTime === null ||
+          videoState.time === null ||
+          !isFinite(videoState.time)
+        ) {
+          return node;
+        }
+        subtitlesRenderer
+          .render(cuesByTime, videoState.time + delay)
+          .forEach(function (cueNode) {
+            cueNode.style.id = "subtitle1";
+            cueNode.style.display = "inline-block";
+            cueNode.style.padding = "0.2em";
+            cueNode.style.fontSize = Math.floor(size / 25) + "vmin";
+            cueNode.style.fontWeight = "700";
+            cueNode.style.color = textColor;
+            cueNode.style.backgroundColor = backgroundColor;
+            cueNode.style.textShadow = "1px 1px 0.1em " + outlineColor;
+            node.push(cueNode);
+          });
+        return node;
       }
+      const node1 = renderSub1();
 
-      subtitlesElement.style.bottom = offset + "%";
-      subtitlesRenderer
-        .render(cuesByTime, videoState.time + delay)
-        .forEach(function (cueNode) {
-          cueNode.style.display = "inline-block";
-          cueNode.style.padding = "0.2em";
-          cueNode.style.fontSize = Math.floor(size / 25) + "vmin";
-          cueNode.style.color = textColor;
-          cueNode.style.backgroundColor = backgroundColor;
-          cueNode.style.textShadow = "1px 1px 0.1em " + outlineColor;
-          subtitlesElement.appendChild(cueNode);
-          subtitlesElement.appendChild(document.createElement("br"));
-        });
+      function renderSub2() {
+        const node = [];
+        if (
+          cuesByTime2 === null ||
+          videoState.time === null ||
+          !isFinite(videoState.time)
+        ) {
+          return node;
+        }
+        subtitlesRenderer
+          .render(cuesByTime2, videoState.time + delay2)
+          .forEach(function (cueNode) {
+            cueNode.style.display = "inline-block";
+            cueNode.style.id = "subtitle2";
+            cueNode.style.padding = "0.2em";
+            cueNode.style.fontSize = Math.floor(size / 25) + "vmin";
+            cueNode.style.color = textColor;
+            cueNode.style.backgroundColor = backgroundColor;
+            cueNode.style.textShadow = "1px 1px 0.1em " + outlineColor;
+            node.push(cueNode);
+          });
+        return node;
+      }
+      const node2 = renderSub2();
+      for (const cueNode of [...node1, ...node2]) {
+        subtitlesElement.appendChild(cueNode);
+        subtitlesElement.appendChild(document.createElement("br"));
+      }
+      // subtitlesElement.style.top =
+      // subtitlesElement.parentNode.getBoundingClientRect().height + "px";
     }
     function onVideoError(error) {
       events.emit("error", error);
@@ -143,6 +188,13 @@ function withHTMLSubtitles(Video) {
 
           return selectedTrackId;
         }
+        case "selectedExtraSubtitles2TrackId": {
+          if (destroyed) {
+            return null;
+          }
+
+          return selectedSub2TrackId;
+        }
         case "extraSubtitlesDelay": {
           if (destroyed) {
             return null;
@@ -150,7 +202,22 @@ function withHTMLSubtitles(Video) {
 
           return delay;
         }
+        case "extraSubtitles2Delay": {
+          if (destroyed) {
+            return null;
+          }
+
+          return delay2;
+        }
         case "extraSubtitlesSize": {
+          if (destroyed) {
+            return null;
+          }
+
+          return size;
+        }
+
+        case "extraSubtitles2Size": {
           if (destroyed) {
             return null;
           }
@@ -194,8 +261,11 @@ function withHTMLSubtitles(Video) {
       switch (propName) {
         case "extraSubtitlesTracks":
         case "selectedExtraSubtitlesTrackId":
+        case "selectedExtraSubtitles2TrackId":
         case "extraSubtitlesDelay":
+        case "extraSubtitles2Delay":
         case "extraSubtitlesSize":
+        case "extraSubtitles2Size":
         case "extraSubtitlesOffset":
         case "extraSubtitlesTextColor":
         case "extraSubtitlesBackgroundColor":
@@ -215,8 +285,10 @@ function withHTMLSubtitles(Video) {
           cuesByTime = null;
           selectedTrackId = null;
           delay = null;
-          var selectedTrack = tracks.find(function (track) {
-            return track.id === propValue;
+          const [trackId, subId] = propValue.split(";");
+          console.log(trackId, subId);
+          const selectedTrack = tracks.find(function (track) {
+            return track.id === trackId;
           });
           if (selectedTrack) {
             selectedTrackId = selectedTrack.id;
@@ -263,6 +335,62 @@ function withHTMLSubtitles(Video) {
           onPropChanged("extraSubtitlesDelay");
           return true;
         }
+        case "selectedExtraSubtitles2TrackId": {
+          cuesByTime2 = null;
+          selectedSub2TrackId = null;
+          delay2 = 0;
+          const [trackId, subId] = propValue.split(";");
+          console.log(trackId, subId);
+          const selectedTrack = tracks.find(function (track) {
+            return track.id === trackId;
+          });
+          console.log("here", selectedTrack);
+
+          if (selectedTrack) {
+            selectedSub2TrackId = selectedTrack.id;
+            delay2 = 0;
+            fetch(selectedTrack.url)
+              .then(function (resp) {
+                if (resp.ok) {
+                  return resp.text();
+                }
+
+                throw new Error(resp.status + " (" + resp.statusText + ")");
+              })
+              .then(function (text) {
+                return subtitlesConverter.convert(text);
+              })
+              .then(function (text) {
+                return subtitlesParser.parse(text);
+              })
+              .then(function (result) {
+                if (selectedSub2TrackId !== selectedTrack.id) {
+                  return;
+                }
+
+                cuesByTime2 = result;
+                renderSubtitles();
+                events.emit("extraSubtitlesTrackLoaded", selectedTrack);
+              })
+              .catch(function (error) {
+                if (selectedSub2TrackId !== selectedTrack.id) {
+                  return;
+                }
+
+                onError(
+                  Object.assign({}, ERROR.WITH_HTML_SUBTITLES.LOAD_FAILED, {
+                    error: error,
+                    track: selectedTrack,
+                    critical: false,
+                  })
+                );
+              });
+          }
+          renderSubtitles();
+          onPropChanged("selectedExtraSubtitles2TrackId");
+          onPropChanged("extraSubtitles2Delay");
+          return true;
+        }
         case "extraSubtitlesDelay": {
           if (
             selectedTrackId !== null &&
@@ -276,11 +404,33 @@ function withHTMLSubtitles(Video) {
 
           return true;
         }
+        case "extraSubtitles2Delay": {
+          if (
+            selectedSub2TrackId !== null &&
+            propValue !== null &&
+            isFinite(propValue)
+          ) {
+            delay2 = parseInt(propValue, 10);
+            renderSubtitles();
+            onPropChanged("extraSubtitles2Delay");
+          }
+
+          return true;
+        }
         case "extraSubtitlesSize": {
           if (propValue !== null && isFinite(propValue)) {
             size = Math.max(0, parseInt(propValue, 10));
             renderSubtitles();
             onPropChanged("extraSubtitlesSize");
+          }
+
+          return true;
+        }
+        case "extraSubtitles2Size": {
+          if (propValue !== null && isFinite(propValue)) {
+            size = Math.max(0, parseInt(propValue, 10));
+            renderSubtitles();
+            onPropChanged("extraSubtitles2Size");
           }
 
           return true;
@@ -393,17 +543,22 @@ function withHTMLSubtitles(Video) {
           cuesByTime = null;
           tracks = [];
           selectedTrackId = null;
+          selectedSub2TrackId = null;
           delay = null;
+          delay2 = null;
           renderSubtitles();
           onPropChanged("extraSubtitlesTracks");
           onPropChanged("selectedExtraSubtitlesTrackId");
+          onPropChanged("selectedExtraSubtitles2TrackId");
           onPropChanged("extraSubtitlesDelay");
+          onPropChanged("extraSubtitles2Delay");
           return false;
         }
         case "destroy": {
           command("unload");
           destroyed = true;
           onPropChanged("extraSubtitlesSize");
+          onPropChanged("extraSubtitles2Size");
           onPropChanged("extraSubtitlesOffset");
           onPropChanged("extraSubtitlesTextColor");
           onPropChanged("extraSubtitlesBackgroundColor");
@@ -473,8 +628,11 @@ function withHTMLSubtitles(Video) {
       .concat([
         "extraSubtitlesTracks",
         "selectedExtraSubtitlesTrackId",
+        "selectedExtraSubtitles2TrackId",
         "extraSubtitlesDelay",
+        "extraSubtitles2Delay",
         "extraSubtitlesSize",
+        "extraSubtitles2Size",
         "extraSubtitlesOffset",
         "extraSubtitlesTextColor",
         "extraSubtitlesBackgroundColor",

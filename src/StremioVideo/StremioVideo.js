@@ -8,7 +8,6 @@ function StremioVideo() {
   var video = null;
   var events = new EventEmitter();
   var destroyed = false;
-  console.log("Hello StremIO Video");
   this.on = function (eventName, listener) {
     if (destroyed) {
       throw new Error("Video is destroyed");
