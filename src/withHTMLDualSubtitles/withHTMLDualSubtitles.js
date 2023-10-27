@@ -7,7 +7,7 @@ var subtitlesParser = require("./subtitlesParser");
 var subtitlesRenderer = require("./subtitlesRenderer");
 var subtitlesConverter = require("./subtitlesConverter");
 
-function withHTMLSubtitles(Video) {
+function withHTMLDualSubtitles(Video) {
   function VideoWithHTMLSubtitles(options) {
     options = options || {};
 
@@ -500,7 +500,7 @@ function withHTMLSubtitles(Video) {
       }),
   };
 
-  return VideoWithHTMLSubtitles;
+  return withHTMLDualSubtitles;
 }
 
-module.exports = withHTMLSubtitles;
+module.exports = withHTMLDualSubtitles;
