@@ -54,7 +54,7 @@ function selectVideoImplementation(commandArgs, options) {
     if (typeof global.tizen !== "undefined") {
       return withVideoParams(withHTMLSubtitles(TizenVideo));
     }
-    return withVideoParams(withHTMLSubtitles(withHTMLSubtitles(HTMLVideo)));
+    return withVideoParams(withHTMLSubtitles(HTMLVideo));
   }
 
   return null;
