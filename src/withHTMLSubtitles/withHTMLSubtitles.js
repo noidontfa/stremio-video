@@ -29,7 +29,6 @@ function withHTMLSubtitles(Video) {
         "Container element required to be instance of HTMLElement"
       );
     }
-    console.log(containerElement.getElementsByTagName("video")[0].height);
 
     var subtitlesElement = document.createElement("div");
     subtitlesElement.style.position = "absolute";
@@ -79,8 +78,19 @@ function withHTMLSubtitles(Video) {
       while (subtitlesElement.hasChildNodes()) {
         subtitlesElement.removeChild(subtitlesElement.lastChild);
       }
+      const heightC = "5.625rem";
+      const subDiv1 = document.createElement("div");
+      subDiv1.style.width = "100%";
+      subDiv1.style.height = heightC;
 
-      subtitlesElement.style.bottom = -16 + offset + "%";
+      const subDiv2 = document.createElement("div");
+      subDiv2.style.width = "100%";
+      subDiv2.style.height = heightC;
+
+      subtitlesElement.appendChild(subDiv1);
+      subtitlesElement.appendChild(subDiv2);
+      subtitlesElement.style.bottom = offset + "%";
+
       function renderSub1() {
         const node = [];
         if (
@@ -96,17 +106,17 @@ function withHTMLSubtitles(Video) {
             cueNode.style.id = "subtitle1";
             cueNode.style.display = "inline-block";
             cueNode.style.padding = "0.2em";
-            cueNode.style.fontSize = Math.floor(size / 25) + "vmin";
+            cueNode.style.fontSize =
+              Math.floor(size / 25) * (window.innerHeight / 100) + "px";
             cueNode.style.fontWeight = "700";
             cueNode.style.color = textColor;
             cueNode.style.backgroundColor = backgroundColor;
             cueNode.style.textShadow = "1px 1px 0.1em " + outlineColor;
+            cueNode.style.whiteSpace = "nowrap";
             node.push(cueNode);
           });
         return node;
       }
-      const node1 = renderSub1();
-
       function renderSub2() {
         const node = [];
         if (
@@ -120,23 +130,38 @@ function withHTMLSubtitles(Video) {
           .render(cuesByTime2, videoState.time + delay2)
           .forEach(function (cueNode) {
             cueNode.style.display = "inline-block";
-            cueNode.style.id = "subtitle2";
+            cueNode.id = "subtitle2";
             cueNode.style.padding = "0.2em";
-            cueNode.style.fontSize = Math.floor(size / 25) + "vmin";
+            cueNode.style.fontSize =
+              Math.floor(size / 25) * (window.innerHeight / 100) + "px";
             cueNode.style.color = textColor;
             cueNode.style.backgroundColor = backgroundColor;
             cueNode.style.textShadow = "1px 1px 0.1em " + outlineColor;
+            cueNode.style.whiteSpace = "nowrap";
             node.push(cueNode);
           });
         return node;
       }
+      const node1 = renderSub1();
       const node2 = renderSub2();
-      for (const cueNode of [...node1, ...node2]) {
-        subtitlesElement.appendChild(cueNode);
-        subtitlesElement.appendChild(document.createElement("br"));
+      for (const cueNode of node1) {
+        subDiv1.appendChild(cueNode);
+        while (cueNode.offsetWidth > subDiv1.offsetWidth) {
+          const fontSize = parseFloat(
+            window.getComputedStyle(cueNode, null).getPropertyValue("font-size")
+          );
+          cueNode.style.fontSize = fontSize - 1 + "px";
+        }
       }
-      // subtitlesElement.style.top =
-      // subtitlesElement.parentNode.getBoundingClientRect().height + "px";
+      for (const cueNode of node2) {
+        subDiv2.appendChild(cueNode);
+        while (cueNode.offsetWidth > subDiv2.offsetWidth) {
+          const fontSize = parseFloat(
+            window.getComputedStyle(cueNode, null).getPropertyValue("font-size")
+          );
+          cueNode.style.fontSize = fontSize - 1 + "px";
+        }
+      }
     }
     function onVideoError(error) {
       events.emit("error", error);
@@ -286,7 +311,6 @@ function withHTMLSubtitles(Video) {
           selectedTrackId = null;
           delay = null;
           const [trackId, subId] = propValue.split(";");
-          console.log(trackId, subId);
           const selectedTrack = tracks.find(function (track) {
             return track.id === trackId;
           });
@@ -340,11 +364,9 @@ function withHTMLSubtitles(Video) {
           selectedSub2TrackId = null;
           delay2 = 0;
           const [trackId, subId] = propValue.split(";");
-          console.log(trackId, subId);
           const selectedTrack = tracks.find(function (track) {
             return track.id === trackId;
           });
-          console.log("here", selectedTrack);
 
           if (selectedTrack) {
             selectedSub2TrackId = selectedTrack.id;
