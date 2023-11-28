@@ -310,6 +310,7 @@ function withHTMLSubtitles(Video) {
           cuesByTime = null;
           selectedTrackId = null;
           delay = null;
+          if (!propValue) propName = "";
           const [trackId, subId] = propValue.split(";") || "";
           const selectedTrack = tracks.find(function (track) {
             return track.id === trackId;
