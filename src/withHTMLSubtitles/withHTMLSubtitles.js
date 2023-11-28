@@ -310,7 +310,7 @@ function withHTMLSubtitles(Video) {
           cuesByTime = null;
           selectedTrackId = null;
           delay = null;
-          const [trackId, subId] = propValue.split(";");
+          const trackId = propName;
           const selectedTrack = tracks.find(function (track) {
             return track.id === trackId;
           });
@@ -363,7 +363,7 @@ function withHTMLSubtitles(Video) {
           cuesByTime2 = null;
           selectedSub2TrackId = null;
           delay2 = 0;
-          const [trackId, subId] = propValue.split(";");
+          const trackId = propName;
           const selectedTrack = tracks.find(function (track) {
             return track.id === trackId;
           });
